@@ -4,53 +4,52 @@
 
 ## 解題說明
 
+![image](https://github.com/user-attachments/assets/9235ef96-b978-433f-bf7c-1ca84decbf91)
+
+
 利用Grok和網路上的資料實作排序 n 個數字的函式，包含以下：
 
- Insertion Sort
- 
- Quick Sort 
- 
- Merge Sort 
- 
- Heap Sort
- 
- Composite Sort
+ Insertion Sort、Quick Sort、Merge Sort、Heap Sort、Composite Sort
+
+ 並實際測量個演算法所需的實際時間和空間
  
 
 ## 程式實作
 
-WorstCaseData 實作：
+TestData 實作：
 
 ```cpp
-#include <vector>
-#include <iostream>
 #include "WorstCase.h"
+#include "permute.h"
 
+// 生成隨機資料（average-case）
+std::vector<int> generateRandomData(int n) {
+    std::vector<int> arr(n);
+    for (int i = 0; i < n; ++i) arr[i] = i;
+    permute(arr);
+    return arr;
+}
+
+// 生成插入排序和複合排序最壞情況（完全逆序）
 std::vector<int> generateWorstCaseInsertion(int n) {
     std::vector<int> arr(n);
-    for (int i = 0; i < n; ++i) arr[i] = n - i;
+    for (int i = 0; i < n; ++i) arr[i] = n - i - 1; // 完全逆序
     return arr;
 }
+
+// 生成快速排序最壞情況（針對中位數選取 pivot）
 std::vector<int> generateWorstCaseQuick(int n) {
     std::vector<int> arr(n);
-    for (int i = 0; i < n; ++i) arr[i] = i; // 近乎有序
-    return arr;
-}
-```
-
-AverageCaseData 實作：
-
-```cpp
-
-#include "permute.h"
-#include <cstdlib>
-
-void permute(std::vector<int>& arr) {
-    int n = arr.size();
-    for (int i = n - 1; i >= 1; --i) {
-        int j = rand() % (i + 1);
-        std::swap(arr[i], arr[j]);
+    int mid = n / 2;
+    for (int i = 0; i < n; ++i) {
+        if (i < mid) {
+            arr[i] = i * 2; // 前半部分：0, 2, 4, ...
+        } else {
+            arr[i] = (i - mid) * 2 + 1; // 後半部分：1, 3, 5, ...
+        }
     }
+    // 結果陣列形如 [0, 2, 4, ..., 1, 3, 5, ...]
+    return arr;
 }
 ```
 
@@ -299,37 +298,15 @@ void compositeSort(std::vector<int>& arr) {
 #include "HeapSort.h"
 #include "CompositeSort.h"
 #include "SortUtils.h"
-#include "permute.h"
+#include "WorstCase.h"
 #include <iostream>
 #include <vector>
 #include <functional>
 #include <iomanip>
 #include <ctime>
 
-// 生成隨機資料（average-case）
-std::vector<int> generateRandomData(int n) {
-    std::vector<int> arr(n);
-    for (int i = 0; i < n; ++i) arr[i] = i;
-    permute(arr);
-    return arr;
-}
-
-// 生成插入排序最壞情況（逆序）
-std::vector<int> generateWorstCaseInsertion(int n) {
-    std::vector<int> arr(n);
-    for (int i = 0; i < n; ++i) arr[i] = n - i;
-    return arr;
-}
-
-// 生成快速排序最壞情況（近乎有序）
-std::vector<int> generateWorstCaseQuick(int n) {
-    std::vector<int> arr(n);
-    for (int i = 0; i < n; ++i) arr[i] = i;
-    return arr;
-}
-
 int main() {
-    srand(time(0));
+    srand(42); // 固定隨機種子，減少隨機排列的波動
     // 測試資料規模
     std::vector<int> ns = {500, 1000, 2000, 3000, 4000, 5000};
     // 排序演算法列表
@@ -354,19 +331,28 @@ int main() {
     // 對每個資料規模進行測試
     for (int n : ns) {
         std::cout << std::setw(15) << n;
-        // 生成測試資料
-        std::vector<int> worstData = generateWorstCaseQuick(n); // 使用快速排序最壞情況
+        // 生成 average-case 資料
         std::vector<int> avgData = generateRandomData(n);
 
         // 測試每個排序演算法
         for (size_t i = 0; i < sorts.size(); ++i) {
+            // 根據演算法選擇 worst-case 資料
+            std::vector<int> worstData;
+            if (sortNames[i] == "Insertion Sort" || sortNames[i] == "Composite Sort") {
+                worstData = generateWorstCaseInsertion(n); // 插入排序和複合排序使用完全逆序
+            } else if (sortNames[i] == "Quick Sort") {
+                worstData = generateWorstCaseQuick(n); // 快速排序使用針對中位數選取 pivot 的最壞情況
+            } else {
+                worstData = generateRandomData(n); // 合併排序和堆排序使用隨機排列
+            }
+
             // 測量最壞情況
-            auto worstResult = measureTimeAndMemory(sorts[i], worstData);
+            auto worstResult = measureTimeAndMemory(sorts[i], worstData, 5000); // 增加重複次數
             double worstTime = worstResult.first;
             size_t worstMemory = worstResult.second;
 
             // 測量平均情況
-            auto avgResult = measureTimeAndMemory(sorts[i], avgData);
+            auto avgResult = measureTimeAndMemory(sorts[i], avgData, 5000); // 增加重複次數
             double avgTime = avgResult.first;
             size_t avgMemory = avgResult.second;
 
@@ -421,10 +407,20 @@ Heap Sort：O(1)。
 Composite Sort：取決於選擇的演算法。
 
 ## 測試與驗證
-
+1.時間(μs)
 | n    |  Insertion Sort worst  |  Insertion Sort Avg  |  Quick Sort worst  |  Quick Sort Avg  |  Merge Sort worst  |  Merge Sort Avg  |  Heap Sort worst  |  Heap Sort Avg  |  Composite Sort worst  |  Composite Sort Avg  |
 |----------|--------------|----------|----------|--------------|----------|----------|--------------|----------|----------|--------------
-| 500  |         2.00           |       246.29         |       22.02        |      40.03       |       82.82         |      108.74      |      76.32        |      82.98      |         511.45         |       789.12        |
+| 500  |         516.48         |       264.87         |       26.03        |      34.32       |       97.59         |      119.92      |      86.56        |      89.57      |         45.03          |       168.66        |
+| 1000 |         5.00           |       963.74         |       50.05        |      92.08       |       187.51        |      231.40      |      173.83       |      184.50     |         1902.36        |       3167.41       |
+| 2000 |         8.51           |       3724.20        |       101.83       |      211.19      |       375.55        |      492.35      |      384.96       |      401.61     |         7674.75        |       13059.47      |
+| 3000 |         13.51          |       8393.36        |       170.48       |      333.52      |       568.89        |      793.19      |      610.09       |      650.33     |         17618.60       |       28792.33      |
+| 4000 |         18.62          |       14912.13       |       219.75       |      451.62      |       764.79        |      1050.06     |      796.65       |      908.77     |         31037.52       |       51498.26      |
+| 5000 |         20.01          |       23687.15       |       300.64       |      593.40      |       1013.63       |      1360.08     |      1019.83      |      1134.18    |         48532.64       |       83731.30      |
+
+2.空間(KB)
+| n    |  Insertion Sort worst  |  Insertion Sort Avg  |  Quick Sort worst  |  Quick Sort Avg  |  Merge Sort worst  |  Merge Sort Avg  |  Heap Sort worst  |  Heap Sort Avg  |  Composite Sort worst  |  Composite Sort Avg  |
+|----------|--------------|----------|----------|--------------|----------|----------|--------------|----------|----------|--------------
+| 500  |         9              |       0              |       27           |      0           |       18            |      0           |      0            |      0          |         0              |       0             |
 | 1000 |         5.00           |       963.74         |       50.05        |      92.08       |       187.51        |      231.40      |      173.83       |      184.50     |         1902.36        |       3167.41       |
 | 2000 |         8.51           |       3724.20        |       101.83       |      211.19      |       375.55        |      492.35      |      384.96       |      401.61     |         7674.75        |       13059.47      |
 | 3000 |         13.51          |       8393.36        |       170.48       |      333.52      |       568.89        |      793.19      |      610.09       |      650.33     |         17618.60       |       28792.33      |
