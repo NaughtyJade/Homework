@@ -1,12 +1,15 @@
-#ifndef TEST_CASE_GENERATOR_H
-#define TEST_CASE_GENERATOR_H
+#ifndef WORST_CASE_H
+#define WORST_CASE_H
 
 #include <vector>
 
-// 產生 Insertion Sort 的最壞情況（遞減序列）
+// 生成隨機資料（average-case）
+std::vector<int> generateRandomData(int n);
+
+// 生成插入排序和複合排序最壞情況（完全逆序）
 std::vector<int> generateWorstCaseInsertion(int n);
 
-// 產生 Quick Sort 的最壞情況（已排序序列，近乎有序）
+// 生成快速排序最壞情況（針對中位數選取 pivot）
 std::vector<int> generateWorstCaseQuick(int n);
 
-#endif
+#endif // WORST_CASE_H
