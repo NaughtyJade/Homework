@@ -4,7 +4,7 @@
 
 ## 解題說明
 
-實作排序 n 個數字的函式，包含以下：
+利用Grok和網路上的資料實作排序 n 個數字的函式，包含以下：
 
  Insertion Sort
  
@@ -61,25 +61,47 @@ void permute(std::vector<int>& arr) {
 #include <chrono>
 #include <windows.h>
 #include <psapi.h>
-
-double measureTime(std::function<void(std::vector<int>&)> sortFunc, std::vector<int> arr, int repeat) {
-    double totalTime = 0;
-    for (int i = 0; i < repeat; ++i) {
-        std::vector<int> temp = arr;
-        auto start = std::chrono::high_resolution_clock::now();
-        sortFunc(temp);
-        auto end = std::chrono::high_resolution_clock::now();
-        totalTime += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-    }
-    return totalTime / repeat;
-}
+#include <vector>
+#include <numeric>
 
 size_t getMemoryUsage() {
     PROCESS_MEMORY_COUNTERS memInfo;
     GetProcessMemoryInfo(GetCurrentProcess(), &memInfo, sizeof(memInfo));
-    return memInfo.WorkingSetSize / 1024;
+    return memInfo.WorkingSetSize / 1024; // 以 KB 為單位
 }
 
+std::pair<double, size_t> measureTimeAndMemory(std::function<void(std::vector<int>&)> sortFunc, std::vector<int> arr, int repeat) {
+    double totalTime = 0;
+    std::vector<size_t> memoryUsages;
+
+    // 測量初始記憶體使用量
+    size_t baseMemory = getMemoryUsage();
+
+    // 重複執行以獲得穩定結果
+    for (int i = 0; i < repeat; ++i) {
+        std::vector<int> temp = arr; // 每次使用新副本
+        auto start = std::chrono::high_resolution_clock::now();
+        sortFunc(temp);
+        auto end = std::chrono::high_resolution_clock::now();
+        totalTime += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+
+        // 測量排序後的記憶體使用量，計算差值
+        size_t currentMemory = getMemoryUsage();
+        size_t memoryUsed = (currentMemory > baseMemory) ? currentMemory - baseMemory : 0;
+        memoryUsages.push_back(memoryUsed);
+    }
+
+    // 計算平均執行時間
+    double avgTime = totalTime / repeat;
+
+    // 計算平均記憶體使用量
+    size_t avgMemoryUsage = 0;
+    if (!memoryUsages.empty()) {
+        avgMemoryUsage = std::accumulate(memoryUsages.begin(), memoryUsages.end(), 0ULL) / memoryUsages.size();
+    }
+
+    return {avgTime, avgMemoryUsage};
+}
 ```
 
 quicksort 實作：
@@ -205,11 +227,36 @@ compositesort  實作：
 #include "MergeSort.h"
 #include <algorithm>
 
-long long countInversions(const std::vector<int>& arr) {
+// 使用合併排序計算逆序對，時間複雜度 O(n log n)
+long long mergeAndCount(std::vector<int>& arr, std::vector<int>& temp, int left, int mid, int right) {
     long long inversions = 0;
-    for (size_t i = 0; i < arr.size() - 1; ++i) {
-        for (size_t j = i + 1; j < arr.size(); ++j) {
-            if (arr[i] > arr[j]) ++inversions;
+    int i = left, j = mid + 1, k = left;
+    
+    while (i <= mid && j <= right) {
+        if (arr[i] <= arr[j]) {
+            temp[k++] = arr[i++];
+        } else {
+            temp[k++] = arr[j++];
+            inversions += mid - i + 1; // 計算逆序對
+        }
+    }
+    while (i <= mid) temp[k++] = arr[i++];
+    while (j <= right) temp[k++] = arr[j++];
+    for (i = left; i <= right; ++i) arr[i] = temp[i];
+    return inversions;
+}
+
+long long countInversions(std::vector<int>& arr) {
+    std::vector<int> temp(arr.size());
+    std::vector<int> copy = arr; // 複製一份陣列以避免修改原始資料
+    long long inversions = 0;
+    int n = copy.size();
+    
+    for (int size = 1; size < n; size *= 2) {
+        for (int left = 0; left < n - size; left += 2 * size) {
+            int mid = left + size - 1;
+            int right = std::min(left + 2 * size - 1, n - 1);
+            inversions += mergeAndCount(copy, temp, left, mid, right);
         }
     }
     return inversions;
@@ -217,15 +264,15 @@ long long countInversions(const std::vector<int>& arr) {
 
 void compositeSort(std::vector<int>& arr) {
     int n = arr.size();
-    // 小規模資料：使用插入排序
-    if (n < 100) {
+    // 小規模資料：使用插入排序（提高閾值）
+    if (n < 50) { // 從 100 降低到 50
         insertionSort(arr);
         return;
     }
     // 檢查是否近乎有序
     long long inversions = countInversions(arr);
     double inversion_ratio = static_cast<double>(inversions) / (n * (n - 1) / 2.0);
-    if (inversion_ratio < 0.1) {
+    if (inversion_ratio < 0.05) { // 從 0.1 降低到 0.05，減少進入插入排序的情況
         insertionSort(arr);
         return;
     }
@@ -294,10 +341,13 @@ int main() {
         "Insertion Sort", "Quick Sort", "Merge Sort", "Heap Sort", "Composite Sort"
     };
 
-    // 輸出表頭
+    // 輸出表頭（執行時間與記憶體使用量）
     std::cout << std::left << std::setw(15) << "n";
     for (const auto& name : sortNames) {
-        std::cout << std::setw(25) << (name + " Worst (us)") << std::setw(25) << (name + " Avg (us)");
+        std::cout << std::setw(25) << (name + " Worst Time (us)")
+                  << std::setw(25) << (name + " Avg Time (us)")
+                  << std::setw(25) << (name + " Worst Mem (KB)")
+                  << std::setw(25) << (name + " Avg Mem (KB)");
     }
     std::cout << std::endl;
 
@@ -311,19 +361,27 @@ int main() {
         // 測試每個排序演算法
         for (size_t i = 0; i < sorts.size(); ++i) {
             // 測量最壞情況
-            double worstTime = measureTime(sorts[i], worstData);
-            // 測量平均情況
-            double avgTime = measureTime(sorts[i], avgData);
+            auto worstResult = measureTimeAndMemory(sorts[i], worstData);
+            double worstTime = worstResult.first;
+            size_t worstMemory = worstResult.second;
 
+            // 測量平均情況
+            auto avgResult = measureTimeAndMemory(sorts[i], avgData);
+            double avgTime = avgResult.first;
+            size_t avgMemory = avgResult.second;
+
+            // 輸出結果
             std::cout << std::fixed << std::setprecision(2);
-            std::cout << std::setw(25) << worstTime << std::setw(25) << avgTime;
+            std::cout << std::setw(25) << worstTime
+                      << std::setw(25) << avgTime
+                      << std::setw(25) << worstMemory
+                      << std::setw(25) << avgMemory;
         }
         std::cout << std::endl;
     }
 
     return 0;
 }
-
 ```
 
 ## 效能分析
@@ -347,7 +405,7 @@ Heap Sort  Aerage-case: $O(n log n)$
 
 Composite Sort (n < 100）：O(1)
 
-Composite Sort (低有序度）：$O(n^2)$
+Composite Sort (低有序度）：$O(n log n)$
 
 Composite Sort (高重複率）：$O(n log n)$
  
