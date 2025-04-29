@@ -432,6 +432,10 @@ $ ./sort_test
 | 3000 |         79             |       31             |       31           |      0           |       41           |      12          |      12           |      12         |         12             |       12             |
 | 4000 |         119            |       0              |       44           |      0           |       89           |      0           |      0            |      0          |         0              |       0              |
 | 5000 |         28             |       28             |       60           |      28          |       49           |      35          |      19           |      19         |         57             |       57             |
+
+![execution_time](https://github.com/user-attachments/assets/a8228c60-5547-48d9-892e-245f7c993e18)
+![memory_usage](https://github.com/user-attachments/assets/e2dd509a-787a-4412-a366-4e04776a7a19)
+
 ## 申論及開發報告
 以模組化的方式把每一個sorting的實作分開寫，加上測試資料的產生用main把所有的模組包起來。
 
