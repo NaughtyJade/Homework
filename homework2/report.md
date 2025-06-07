@@ -309,7 +309,16 @@ Binary Search Tree:O(n)
 
 ![Tinput](https://github.com/user-attachments/assets/30016da8-da95-457a-95d1-c90b1cc36dfa)
 
+## 申論及開發報告
+以模組化的方式把每一個sorting的實作分開寫，加上測試資料的產生用main把所有的模組包起來。
 
+一開始用repeat100來測試時間和空間的數值，但看到很多0所以我就用repeat1000下去測才必較好。
+
+CompositeSort的設計是以
+- 資料規模
+- 有序程度
+- 元素重複程度
+來判定，預設是用QuickSort來做。
 
 
 
