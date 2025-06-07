@@ -316,6 +316,9 @@ $ ./BinarySearchTree
 
 $ g++ CalTInput.cpp -o CalTInput
 $ ./CalTInput
+
+$ python BSTRatios.py
+$ python TInput.py
 ```
 
 ![BSTRatios](https://github.com/user-attachments/assets/29894331-31b3-4f3a-b9bd-2a9cdb64c1c7)
