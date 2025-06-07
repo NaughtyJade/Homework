@@ -4,18 +4,16 @@
 
 ## 解題說明
 
-實作Min Heap  
+![image](https://github.com/user-attachments/assets/679033c8-5696-43d5-872c-fe7d98dfd00d)
 
-實作Binary Search Tree
+![image](https://github.com/user-attachments/assets/6e4c61e0-1d79-43a2-85f5-07d1569aceeb)
 
-實作課本第457頁的練習1
+![image](https://github.com/user-attachments/assets/7c19fc6d-e9f3-4e15-ba81-1ced022bede4)
 
- 利用Grok和網路上的資料實作 
- 
-   Min Heap, Binary Search Tree 以及課本第457頁的練習1
-
-並實際測量個演算法所需的實際時間
-
+ 利用Grok和網路上的資料並使用C++ 實現核心演算法，Python + Matplotlib 繪製圖表，並分析每個操作的時間與空間複雜度。 
+ - Min Heap
+ - Binary Search Tree
+ - 課本第457頁的練習1
 
  
 ## 程式實作
@@ -278,47 +276,58 @@ int main() {
 
 ## 效能分析
 
-1.時間複雜度
+### 1. 時間複雜度
 
-Min Heap:
+- **MinHeap**
+  - IsEmpty：O(1)
+  - Top：O(1)
+  - Push：O(log n)
+  - Pop：O(log n)
 
-IsEmpty：O(1)
+- **BinerySearchTree**
+  - 插入：O(n)
+  - 高度計算：O(n)
+  - 刪除：O(n)
+  - 主程式：O(n log n)
+  
+- **t_input**
+  - 計算：O(1)（每次 k 的計算）
+  - 主程式：O(k)（遍歷 k_values）
+  
+### 2. 空間複雜度
 
-Top：O(1)
+- **MinHeap**
+  - 主要空間：O(n)
 
-Push：O(log n)
+- **BinerySearchTree**
+  - 主要空間：O(n)
 
-Pop：O(log n)
-
-Binary Search Tree:
-
-平均：O(log n)
-
-最壞：O(n)
-
- 
-2.空間複雜度
-
-Min Heap:O(n)
-
-Binary Search Tree:O(n)
+- **t_input**
+  - 主要空間：O(1)
 
 ## 測試與驗證
+
+```shell
+$ g++ MinHeap.cpp -o MinHeap
+$ ./MinHeap
+
+$ g++ BinarySearchTree.cpp -o BinarySearchTree
+$ ./BinarySearchTree
+
+$ g++ CalTInput.cpp -o CalTInput
+$ ./CalTInput
+```
 
 ![BSTRatios](https://github.com/user-attachments/assets/29894331-31b3-4f3a-b9bd-2a9cdb64c1c7)
 
 ![Tinput](https://github.com/user-attachments/assets/30016da8-da95-457a-95d1-c90b1cc36dfa)
 
 ## 申論及開發報告
-以模組化的方式把每一個sorting的實作分開寫，加上測試資料的產生用main把所有的模組包起來。
 
-一開始用repeat100來測試時間和空間的數值，但看到很多0所以我就用repeat1000下去測才必較好。
-
-CompositeSort的設計是以
-- 資料規模
-- 有序程度
-- 元素重複程度
-來判定，預設是用QuickSort來做。
+以模組化方式實現：
+- **問題 1**：`MinHeap.cpp` 將 MinPQ 抽象類與 MinHeap 分離
+- **問題 2**：`BinarySearchTree.cpp` 整合插入、高度計算和刪除功能，減少檔案數量。
+- **問題 3**：`CalTInput.cpp` 實現 t_input 計算公式，`TInput.py` 繪製 k 的影響。
 
 
 
