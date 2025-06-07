@@ -24,7 +24,6 @@ Min Heap 實作：
 #include <vector>
 #include <stdexcept>
 
-// MinPQ ?質情憿?
 template <class T>
 class MinPQ {
 public:
@@ -35,13 +34,11 @@ public:
     virtual void Pop() = 0;
 };
 
-// MinHeap 撖衣
 template <class T>
 class MinHeap : public MinPQ<T> {
 private:
     std::vector<T> heap;
 
-    // 銝蕪嚗?蝝Ｗ? i ??蝝?銝矽??
     void SiftUp(int i) {
         while (i > 0) {
             int parent = (i - 1) / 2;
@@ -54,7 +51,6 @@ private:
         }
     }
 
-    // 銝蕪嚗?蝝Ｗ? i ??蝝?銝矽??
     void SiftDown(int i) {
         int n = heap.size();
         while (true) {
@@ -115,7 +111,6 @@ Binary Search Tree 實作：
 #include <vector>
 #include <algorithm>
 
-// BST 蝭暺?
 struct Node {
     int value;
     Node* left;
@@ -123,7 +118,6 @@ struct Node {
     Node(int val) : value(val), left(nullptr), right(nullptr) {}
 };
 
-// BST 憿?
 class BST {
 private:
     Node* root;
@@ -155,7 +149,6 @@ private:
         }
     }
 
-    // ?曉?喳?璅寞?撠潛?暺?
     Node* findMin(Node* node) {
         while (node->left) {
             node = node->left;
@@ -163,7 +156,6 @@ private:
         return node;
     }
 
-    // ?芷蝭暺?
     Node* remove(Node* node, int k) {
         if (!node) {
             return nullptr;
@@ -173,7 +165,6 @@ private:
         } else if (k > node->value) {
             node->right = remove(node->right, k);
         } else {
-            // ?∪?蝭暺??桀?蝭暺?
             if (!node->left) {
                 Node* temp = node->right;
                 delete node;
@@ -183,7 +174,6 @@ private:
                 delete node;
                 return temp;
             }
-            // ??蝭暺?
             Node* minNode = findMin(node->right);
             node->value = minNode->value;
             node->right = remove(node->right, minNode->value);
@@ -219,11 +209,11 @@ int main() {
 
     std::vector<int> n_values = {100, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
     std::vector<double> ratios;
-    std::ofstream out("bst_ratios.txt"); // 頛詨?唳?獢?
+    std::ofstream out("bst_ratios.txt"); 
 
     for (int n : n_values) {
         double total_ratio = 0.0;
-        int trials = 10; // 憭活璅⊥?像??
+        int trials = 10; 
         for (int t = 0; t < trials; ++t) {
             BST bst;
             for (int i = 0; i < n; ++i) {
@@ -263,7 +253,7 @@ int main() {
     int n = 200000, m = 64, S = 2000;
     double ts = 0.08, tl = 0.02, tt = 0.001;
     std::vector<int> k_values = {2, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
-    std::ofstream out("input_times.txt"); // 頛詨?唳?獢?
+    std::ofstream out("input_times.txt");
 
     for (int k : k_values) {
         double t_input = calculateInputTime(k, n, m, S, ts, tl, tt);
